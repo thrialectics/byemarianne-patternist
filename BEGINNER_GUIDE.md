@@ -138,11 +138,11 @@ Remember: Every text tells a story through its patterns. What story are you tryi
 - **Unique bigrams**: Distinct word pair combinations discovered
 - **Top bigrams**: Most frequent patterns - these are rarely accidental
 - **Statistical collocations**: Pairs appearing together beyond chance - potential clues
-- **Special marker ⭐**: Highlights when "in everything" appears
+- **Special marker ⭐**: Highlights when the top bigram appears
 
 ### Evidence Archive:
 Two CSV files document your findings:
-1. `diary_analysis_with_all_words.csv` - includes common words like "in everything"
+1. `diary_analysis_with_all_words.csv` - includes common words like "unseen forces"
 2. `diary_analysis_content_words.csv` - focuses on meaningful content words
 
 Each file contains:
@@ -163,7 +163,7 @@ Each file contains:
 **A:** Common words ("the", "is", "and") are filtered to reveal meaningful patterns. But sometimes these "stopwords" hide clues...
 
 ### Q: I want more detailed analysis beyond the basic patterns
-**A:** The main script `simple_run.py` already analyzes both WITH and WITHOUT common words, specifically tracking "in everything". For even deeper analysis, use:
+**A:** The main script `simple_run.py` already analyzes both WITH and WITHOUT common words, specifically tracking the top bigram. For even deeper analysis, use:
 ```bash
 python example-scripts/analyze_diary_complete.py
 ```
@@ -173,7 +173,7 @@ This provides extensive thematic breakdowns and statistical correlations.
 **A:** Yes, but you'll need to run the command once for each file.
 
 ### Q: What's PMI, Chi-square, etc?
-**A:** Statistical methods that detect non-random patterns. When words appear together more than chance predicts, it suggests intentional placement. The diary's author writes about "patterns in everything" - these metrics find those patterns.
+**A:** Statistical methods that detect non-random patterns. When words appear together more than chance predicts, it suggests intentional placement.
 
 ---
 
@@ -206,9 +206,7 @@ Once you've uncovered the initial patterns:
 1. **Cross-reference findings**: Compare diary entries from different dates—do patterns evolve?
 2. **Look for anomalies**: Which entries break the pattern? Those might be most revealing
 3. **Track theme evolution**: How do concepts like "noticing" and "failing" connect?
-4. **Question everything**: Why does the author mention "patterns in everything" so often?
-
-The diary mentions an ARG being designed, with "puzzles" and "players." But who's really playing, and who's being played?
+4. **Question everything**: Why does the author mention her top bigrams so often?
 
 ---
 
