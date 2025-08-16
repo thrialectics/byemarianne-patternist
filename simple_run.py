@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """
-DIARY TEXT BIGRAM ANALYZER
-Analyzes the diary text to find patterns in word usage
+DIARY TEXT BIGRAM ANALYZER (neutral)
+Analyzes the diary text to find patterns in word usage without targeting any specific phrase.
 """
 
 import sys
 import os
+import argparse
 
 # Add src directory to path
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
@@ -42,11 +43,24 @@ except LookupError:
     nltk.download('omw-1.4', quiet=True)
     print("✅ Language data ready!")
 
+# CLI options
+parser = argparse.ArgumentParser(description="Neutral bigram analysis over diary text.")
+parser.add_argument("--top", type=int, default=20, help="How many top bigrams/collocations to show (default: 20).")
+parser.add_argument("--min-freq", type=int, default=2, help="Minimum bigram frequency for ranking (default: 2).")
+parser.add_argument("--path", default=os.path.join('data', 'diary_text.txt'),
+                    help="Path to diary text (default: data/diary_text.txt).")
+args = parser.parse_args()
+
 # Load the diary text
-diary_path = os.path.join('data', 'diary_text.txt')
-print(f"\n📖 Loading diary text...")
-with open(diary_path, 'r', encoding='utf-8') as f:
-    text = f.read()
+diary_path = args.path
+print(f"\n📖 Loading diary text from: {diary_path}")
+try:
+    with open(diary_path, 'r', encoding='utf-8') as f:
+        text = f.read()
+except FileNotFoundError:
+    print("❌ Could not find the diary text file. Make sure it exists at the given path.")
+    input("\nPress Enter to exit...")
+    sys.exit(1)
 
 print(f"✅ Loaded {len(text)} characters of diary entries")
 print()
@@ -54,12 +68,12 @@ print("=" * 60)
 print(" ANALYZING DIARY PATTERNS ")
 print("=" * 60)
 
-# Analysis WITH stopwords to catch "in everything"
-print("\n🔍 FULL PHRASE ANALYSIS (including 'in', 'the', etc.)")
+# ---- Analysis WITH stopwords (neutral, no targeted phrase) ----
+print("\n🔍 FULL PHRASE ANALYSIS (including stopwords)")
 print("-" * 40)
 
 tokenizer_with_stops = TextTokenizer(
-    remove_stopwords=False,  # Keep all words to find "in everything"
+    remove_stopwords=False,  # keep all words to reflect actual phrasing
     lowercase=True,
     remove_punctuation=True
 )
@@ -70,25 +84,17 @@ print(f"Total words: {len(tokens_with_stops)}")
 analyzer_with_stops = BigramAnalyzer()
 bigrams_with_stops = analyzer_with_stops.extract_bigrams(tokens_with_stops)
 
-# Count "in everything" specifically
-in_everything_count = sum(1 for bigram in bigrams_with_stops 
-                         if bigram == ('in', 'everything'))
-
-print(f"\n🎯 'in everything' appears {in_everything_count} times!")
-
-print("\n📊 TOP 20 MOST COMMON PHRASES:")
+# Top by raw frequency (neutral)
+top_phrases = analyzer_with_stops.get_top_bigrams(args.top, min_freq=args.min_freq)
+print(f"\n📊 TOP {args.top} MOST COMMON BIGRAMS (freq ≥ {args.min_freq}):")
 print("-" * 40)
-top_phrases = analyzer_with_stops.get_top_bigrams(20)
 for i, (bigram, freq) in enumerate(top_phrases, 1):
     bigram_str = ' '.join(bigram)
     bar = '█' * min(freq * 2, 40)
-    if bigram_str == 'in everything':
-        print(f"{i:2}. {bigram_str:25} {freq:2}x {bar} ⭐")
-    else:
-        print(f"{i:2}. {bigram_str:25} {freq:2}x {bar}")
+    print(f"{i:2}. {bigram_str:25} {freq:2}x {bar}")
 
-# Analysis WITHOUT stopwords for content words
-print("\n\n🔍 CONTENT WORD ANALYSIS (meaningful words only)")
+# ---- Analysis WITHOUT stopwords (content words) ----
+print("\n\n🔍 CONTENT WORD ANALYSIS (stopwords removed)")
 print("-" * 40)
 
 tokenizer_no_stops = TextTokenizer(
@@ -103,21 +109,21 @@ print(f"Content words: {len(tokens_no_stops)}")
 analyzer_no_stops = BigramAnalyzer()
 bigrams_no_stops = analyzer_no_stops.extract_bigrams(tokens_no_stops)
 
-print("\n📊 TOP 15 CONTENT WORD PAIRS:")
+print(f"\n📊 TOP {args.top} CONTENT WORD BIGRAMS (freq ≥ {args.min_freq}):")
 print("-" * 40)
-top_content = analyzer_no_stops.get_top_bigrams(15)
+top_content = analyzer_no_stops.get_top_bigrams(args.top, min_freq=args.min_freq)
 for i, (bigram, freq) in enumerate(top_content, 1):
     bigram_str = ' '.join(bigram)
     bar = '█' * min(freq * 3, 40)
     print(f"{i:2}. {bigram_str:25} {freq:2}x {bar}")
 
-# Theme analysis
-print("\n\n🎨 THEMATIC PATTERNS IN THE DIARY:")
+# ---- Optional: simple thematic pass (keyword buckets) ----
+print("\n\n🎨 THEMATIC PATTERNS IN THE DIARY (neutral keyword buckets):")
 print("-" * 40)
 
 themes = {
     'design & creation': ['design', 'designing', 'build', 'building', 'create', 'creating'],
-    'emotions & feelings': ['feel', 'feeling', 'emotional', 'intelligence', 'suffer', 'suffering'],
+    'emotions & insight': ['feel', 'feeling', 'insight', 'emotional', 'intelligence'],
     'observation': ['notice', 'noticing', 'see', 'seeing', 'read', 'reading', 'watch', 'watching'],
     'people & audience': ['people', 'players', 'audience', 'someone', 'everyone'],
     'absence & failure': ['absent', 'absence', 'missing', 'fail', 'failure', 'wrong']
@@ -126,46 +132,51 @@ themes = {
 for theme, keywords in themes.items():
     theme_bigrams = []
     for bigram, freq in analyzer_no_stops.bigram_freq.items():
-        if any(keyword in bigram[0].lower() or keyword in bigram[1].lower() 
-               for keyword in keywords):
+        if any(keyword in bigram[0].lower() or keyword in bigram[1].lower() for keyword in keywords):
             theme_bigrams.append((bigram, freq))
-    
     if theme_bigrams:
         theme_bigrams.sort(key=lambda x: x[1], reverse=True)
         print(f"\n📌 {theme.upper()}:")
         for bigram, freq in theme_bigrams[:3]:  # Top 3 per theme
             print(f"   • '{' '.join(bigram)}' ({freq}x)")
 
-# Statistical collocations
-print("\n\n📈 STATISTICALLY SIGNIFICANT PATTERNS:")
-print("(Word pairs that appear together more than random chance)")
+# ---- Statistical collocations (PMI) ----
+print("\n\n📈 STATISTICALLY SIGNIFICANT COLLOCATIONS (PMI)")
+print(f"(Pairs that co-occur more than chance; min freq ≥ {args.min_freq})")
 print("-" * 40)
 
-collocations = analyzer_no_stops.find_collocations(tokens_no_stops, n=10, min_freq=2)
-for i, bigram in enumerate(collocations['pmi'][:10], 1):
-    print(f"{i:2}. {' '.join(bigram)}")
+# Expecting analyzer_no_stops.find_collocations to return dict with 'pmi' list
+collocations = analyzer_no_stops.find_collocations(tokens_no_stops, n=args.top, min_freq=args.min_freq)
+pmi_list = collocations.get('pmi', []) if isinstance(collocations, dict) else []
+if pmi_list:
+    for i, bigram in enumerate(pmi_list[:args.top], 1):
+        print(f"{i:2}. {' '.join(bigram)}")
+else:
+    print("No PMI collocations found with current thresholds.")
 
-# Save results
+# ---- Save results ----
 print("\n\n💾 SAVING DETAILED RESULTS...")
 print("-" * 40)
 
-# Export both analyses
 df_with = analyzer_with_stops.export_results(tokens_with_stops, 'diary_analysis_with_all_words.csv')
 df_without = analyzer_no_stops.export_results(tokens_no_stops, 'diary_analysis_content_words.csv')
 
 print("✅ Created two files:")
-print("   1. diary_analysis_with_all_words.csv - includes 'in everything'")
-print("   2. diary_analysis_content_words.csv - meaningful words only")
+print("   1. diary_analysis_with_all_words.csv  (includes stopwords)")
+print("   2. diary_analysis_content_words.csv  (stopwords removed)")
 
 print()
 print("=" * 60)
 print(" ✨ ANALYSIS COMPLETE! ")
 print("=" * 60)
 print()
-print("KEY FINDINGS:")
-print(f"• The phrase 'in everything' appears {in_everything_count} times")
-print(f"• Most common phrase: '{' '.join(top_phrases[0][0])}' ({top_phrases[0][1]}x)")
-print(f"• Total unique word pairs: {len(set(bigrams_with_stops))}")
+print("KEY FINDINGS (neutral):")
+if top_phrases:
+    print(f"• Most common bigram (with stopwords): '{' '.join(top_phrases[0][0])}' ({top_phrases[0][1]}x)")
+else:
+    print("• No bigrams met the frequency threshold in the with-stopwords pass.")
+print(f"• Total unique bigrams (with stopwords): {len(set(bigrams_with_stops))}")
+print(f"• Total unique bigrams (without stopwords): {len(set(bigrams_no_stops))}")
 print()
 print("📁 Open the CSV files in Excel to explore all patterns!")
 print()
