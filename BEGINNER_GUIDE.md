@@ -107,7 +107,7 @@ The investigation tool:
 5. **Revealed** the most suspicious recurring phrases
 6. **Documented** all findings in a CSV file for your investigation
 
-The author writes about "noticing" things others miss, about patterns "in everything." Is this self-awareness, or something else?
+The author writes about "noticing" things others miss. Is this self-awareness, or something else?
 
 ---
 
