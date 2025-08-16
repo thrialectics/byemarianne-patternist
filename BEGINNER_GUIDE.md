@@ -83,13 +83,13 @@ You should see output like:
 ----------------------------------------
 Total words: 1458
 
-🎯 'in everything' appears 6 times!
+🎯 'unseen forces' appears 6 times!
 
 📊 TOP 20 MOST COMMON PHRASES:
 ----------------------------------------
- 1. in everything              6x ████████████ ⭐
- 2. think about                4x ████████
- 3. emotional intelligence      3x ██████
+ 1. unseen forces              6x ████████████ ⭐
+ 2. try harder                 4x ████████
+ 3. complicated position       3x ██████
    ...
 ```
 
@@ -146,7 +146,7 @@ Two CSV files document your findings:
 2. `diary_analysis_content_words.csv` - focuses on meaningful content words
 
 Each file contains:
-- Column A: The word pair (e.g., "emotional intelligence")
+- Column A: The word pair (e.g., "try harder")
 - Column B: First word
 - Column C: Second word  
 - Column D: Frequency count - how often does this pattern repeat?
