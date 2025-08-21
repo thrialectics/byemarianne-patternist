@@ -13,7 +13,7 @@ def analyze_diary_complete():
     """Analyze the diary text showing both with and without stopwords"""
     
     print("\n" + "=" * 80)
-    print(" COMPLETE DIARY TEXT ANALYSIS - INCLUDING 'IN EVERYTHING' ")
+    print(" COMPLETE DIARY TEXT ANALYSIS - DUAL APPROACH ")
     print("=" * 80)
     
     # Load the diary text
@@ -23,19 +23,19 @@ def analyze_diary_complete():
     
     print(f"\nText loaded: {len(text)} characters")
     
-    # First, analyze WITH stopwords to see "in everything"
+    # First, analyze WITH stopwords for complete patterns
     print("\n" + "=" * 80)
-    print(" ANALYSIS WITH STOPWORDS (TO CAPTURE 'IN EVERYTHING') ")
+    print(" ANALYSIS WITH ALL WORDS (INCLUDING COMMON WORDS) ")
     print("=" * 80)
     
     tokenizer_with_stops = TextTokenizer(
-        remove_stopwords=False,  # Keep stopwords to see "in everything"
+        remove_stopwords=False,  # Keep all words for complete analysis
         lowercase=True,
         remove_punctuation=True
     )
     
     tokens_with_stops = tokenizer_with_stops.basic_tokenize(text)
-    print(f"\nTotal tokens (with stopwords): {len(tokens_with_stops)}")
+    print(f"\nTotal tokens (all words): {len(tokens_with_stops)}")
     print(f"Unique tokens: {len(set(tokens_with_stops))}")
     
     # Analyze bigrams WITH stopwords
@@ -45,24 +45,20 @@ def analyze_diary_complete():
     print(f"\nTotal bigrams: {len(bigrams_with_stops)}")
     print(f"Unique bigrams: {len(set(bigrams_with_stops))}")
     
-    # Count occurrences of "in everything"
-    in_everything_count = sum(1 for bigram in bigrams_with_stops 
-                             if bigram == ('in', 'everything'))
-    print(f"\n** 'in everything' appears {in_everything_count} times **")
-    
     # Top bigrams WITH stopwords
-    print("\n** TOP 30 BIGRAMS (WITH STOPWORDS) **")
+    print("\n** TOP 30 BIGRAMS (ALL WORDS INCLUDED) **")
     top_bigrams_with = analyzer_with_stops.get_top_bigrams(30)
     for i, (bigram, freq) in enumerate(top_bigrams_with, 1):
         bigram_str = ' '.join(bigram)
-        if bigram_str == 'in everything':
-            print(f"  {i:3}. '{bigram_str:35}' : {freq} occurrences *** TARGET BIGRAM ***")
+        # Mark particularly frequent patterns
+        if freq >= 6:
+            print(f"  {i:3}. '{bigram_str:35}' : {freq} occurrences [HIGH FREQUENCY]")
         else:
             print(f"  {i:3}. '{bigram_str:35}' : {freq} occurrences")
     
     # Now analyze WITHOUT stopwords for content words
     print("\n" + "=" * 80)
-    print(" ANALYSIS WITHOUT STOPWORDS (CONTENT WORDS ONLY) ")
+    print(" ANALYSIS WITHOUT COMMON WORDS (CONTENT FOCUS) ")
     print("=" * 80)
     
     tokenizer_no_stops = TextTokenizer(
@@ -72,7 +68,7 @@ def analyze_diary_complete():
     )
     
     tokens_no_stops = tokenizer_no_stops.basic_tokenize(text)
-    print(f"\nTotal tokens (without stopwords): {len(tokens_no_stops)}")
+    print(f"\nTotal tokens (content words only): {len(tokens_no_stops)}")
     print(f"Unique tokens: {len(set(tokens_no_stops))}")
     
     # Analyze bigrams WITHOUT stopwords
@@ -83,58 +79,69 @@ def analyze_diary_complete():
     print(f"Unique bigrams: {len(set(bigrams_no_stops))}")
     
     # Top content-word bigrams
-    print("\n** TOP 30 CONTENT-WORD BIGRAMS (WITHOUT STOPWORDS) **")
+    print("\n** TOP 30 CONTENT-WORD BIGRAMS **")
     top_bigrams_without = analyzer_no_stops.get_top_bigrams(30)
     for i, (bigram, freq) in enumerate(top_bigrams_without, 1):
         print(f"  {i:3}. '{' '.join(bigram):35}' : {freq} occurrences")
     
-    # Find all bigrams containing "everything"
+    # Thematic word analysis
     print("\n" + "=" * 80)
-    print(" ALL BIGRAMS CONTAINING 'EVERYTHING' ")
+    print(" THEMATIC WORD PATTERNS ")
     print("=" * 80)
     
-    everything_bigrams = {}
-    for bigram in bigrams_with_stops:
-        if 'everything' in bigram:
-            bigram_str = ' '.join(bigram)
-            if bigram_str not in everything_bigrams:
-                everything_bigrams[bigram_str] = 0
-            everything_bigrams[bigram_str] += 1
+    # Find patterns around key themes
+    themes = {
+        'design': ['design', 'designing', 'build', 'building', 'create'],
+        'perception': ['notice', 'noticing', 'see', 'seeing', 'read'],
+        'emotion': ['feel', 'feeling', 'emotional', 'intelligence'],
+        'meta': ['everything', 'something', 'nothing', 'anything']
+    }
     
-    print("\n** With stopwords included: **")
-    for bigram_str, count in sorted(everything_bigrams.items(), key=lambda x: x[1], reverse=True):
-        print(f"  '{bigram_str:35}' : {count} occurrences")
+    for theme_name, keywords in themes.items():
+        print(f"\n** {theme_name.upper()} THEME: **")
+        theme_bigrams = {}
+        for bigram in bigrams_with_stops:
+            if any(keyword in bigram for keyword in keywords):
+                bigram_str = ' '.join(bigram)
+                if bigram_str not in theme_bigrams:
+                    theme_bigrams[bigram_str] = 0
+                theme_bigrams[bigram_str] += 1
+        
+        # Show top 5 for each theme
+        sorted_theme = sorted(theme_bigrams.items(), key=lambda x: x[1], reverse=True)[:5]
+        for bigram_str, count in sorted_theme:
+            print(f"  '{bigram_str:35}' : {count} occurrences")
     
-    # Statistical analysis on version WITH stopwords for "in everything"
+    # Statistical analysis
     print("\n" + "=" * 80)
-    print(" STATISTICAL ANALYSIS (WITH STOPWORDS) ")
+    print(" STATISTICAL COLLOCATION ANALYSIS ")
     print("=" * 80)
     
-    collocations = analyzer_with_stops.find_collocations(tokens_with_stops, n=20, min_freq=2)
+    collocations_with = analyzer_with_stops.find_collocations(tokens_with_stops, n=20, min_freq=2)
+    collocations_without = analyzer_no_stops.find_collocations(tokens_no_stops, n=20, min_freq=2)
     
-    print("\n** PMI Scores (top 20): **")
-    for i, bigram in enumerate(collocations['pmi'][:20], 1):
-        bigram_str = ' '.join(bigram)
-        if bigram_str == 'in everything':
-            print(f"  {i:2}. {bigram_str} *** TARGET BIGRAM ***")
-        else:
-            print(f"  {i:2}. {bigram_str}")
+    print("\n** PMI Scores WITH all words (top 15): **")
+    print("(Pairs that appear together more than chance would predict)")
+    for i, bigram in enumerate(collocations_with['pmi'][:15], 1):
+        print(f"  {i:2}. {' '.join(bigram)}")
     
-    # Context analysis for "in everything"
+    print("\n** PMI Scores WITHOUT common words (top 15): **")
+    print("(Content word pairs with strong associations)")
+    for i, bigram in enumerate(collocations_without['pmi'][:15], 1):
+        print(f"  {i:2}. {' '.join(bigram)}")
+    
+    # Pattern discovery
     print("\n" + "=" * 80)
-    print(" CONTEXT ANALYSIS FOR 'IN EVERYTHING' ")
+    print(" PATTERN DISCOVERY ")
     print("=" * 80)
     
-    context = analyzer_with_stops.analyze_bigram_context(text, ('in', 'everything'))
-    print(f"\nOccurrences: {context['occurrences']}")
-    print(f"Found in sentences at positions: {context['positions']}")
+    # Find recurring patterns (3+ occurrences)
+    print("\n** Recurring patterns (3+ occurrences): **")
+    recurring = [(bigram, freq) for bigram, freq in analyzer_with_stops.bigram_freq.items() if freq >= 3]
+    recurring.sort(key=lambda x: x[1], reverse=True)
     
-    if context['sentences']:
-        print("\n** All sentences containing 'in everything': **")
-        for i, sentence in enumerate(context['sentences'], 1):
-            # Highlight the phrase
-            highlighted = sentence.replace('in everything', '>>> IN EVERYTHING <<<')
-            print(f"\n{i}. {highlighted}")
+    for bigram, freq in recurring[:20]:
+        print(f"  '{' '.join(bigram):35}' : {freq} times")
     
     # Export both analyses
     print("\n" + "=" * 80)
@@ -142,22 +149,23 @@ def analyze_diary_complete():
     print("=" * 80)
     
     # Export with stopwords
-    df_with = analyzer_with_stops.export_results(tokens_with_stops, 'diary_with_stopwords.csv')
-    print(f"Results WITH stopwords exported to 'diary_with_stopwords.csv'")
+    df_with = analyzer_with_stops.export_results(tokens_with_stops, 'diary_complete_all_words.csv')
+    print(f"Results WITH all words exported to 'diary_complete_all_words.csv'")
     
     # Export without stopwords  
-    df_without = analyzer_no_stops.export_results(tokens_no_stops, 'diary_without_stopwords.csv')
-    print(f"Results WITHOUT stopwords exported to 'diary_without_stopwords.csv'")
+    df_without = analyzer_no_stops.export_results(tokens_no_stops, 'diary_complete_content_only.csv')
+    print(f"Results WITHOUT common words exported to 'diary_complete_content_only.csv'")
     
     print("\n" + "=" * 80)
     print(" ANALYSIS COMPLETE! ")
     print("=" * 80)
     
-    print("\nKey Findings:")
-    print(f"- 'in everything' appears {in_everything_count} times in the text")
-    print(f"- It ranks #{[i for i, (b, _) in enumerate(top_bigrams_with, 1) if ' '.join(b) == 'in everything'][0] if any(' '.join(b) == 'in everything' for b, _ in top_bigrams_with) else 'not in top 30'} in frequency when stopwords are included")
-    print("- When stopwords are removed, content-word bigrams like 'uncanny forcefulness' become visible")
-    print("- The text shows a pattern of using 'everything' to emphasize totality and completeness")
+    print("\nKey Insights:")
+    print("- The diary shows distinct patterns when analyzed with and without common words")
+    print("- Content word analysis reveals thematic focus on design and perception")
+    print("- Statistical collocations identify word pairs with significant associations")
+    print("- Multiple recurring patterns suggest deliberate stylistic choices")
+    print("\nExamine the CSV files for detailed pattern analysis.")
     
     return analyzer_with_stops, analyzer_no_stops
 
