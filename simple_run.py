@@ -85,8 +85,10 @@ analyzer_with_stops = BigramAnalyzer()
 bigrams_with_stops = analyzer_with_stops.extract_bigrams(tokens_with_stops)
 
 # Top by raw frequency (neutral)
-top_phrases = analyzer_with_stops.get_top_bigrams(args.top, min_freq=args.min_freq)
-print(f"\n📊 TOP {args.top} MOST COMMON BIGRAMS (freq ≥ {args.min_freq}):")
+top_phrases = analyzer_with_stops.get_top_bigrams(args.top)
+# Filter by minimum frequency if needed
+top_phrases = [(bigram, freq) for bigram, freq in top_phrases if freq >= args.min_freq]
+print(f"\n📊 TOP {len(top_phrases)} MOST COMMON BIGRAMS (freq ≥ {args.min_freq}):")
 print("-" * 40)
 for i, (bigram, freq) in enumerate(top_phrases, 1):
     bigram_str = ' '.join(bigram)
@@ -109,9 +111,11 @@ print(f"Content words: {len(tokens_no_stops)}")
 analyzer_no_stops = BigramAnalyzer()
 bigrams_no_stops = analyzer_no_stops.extract_bigrams(tokens_no_stops)
 
-print(f"\n📊 TOP {args.top} CONTENT WORD BIGRAMS (freq ≥ {args.min_freq}):")
+top_content = analyzer_no_stops.get_top_bigrams(args.top)
+# Filter by minimum frequency if needed
+top_content = [(bigram, freq) for bigram, freq in top_content if freq >= args.min_freq]
+print(f"\n📊 TOP {len(top_content)} CONTENT WORD BIGRAMS (freq ≥ {args.min_freq}):")
 print("-" * 40)
-top_content = analyzer_no_stops.get_top_bigrams(args.top, min_freq=args.min_freq)
 for i, (bigram, freq) in enumerate(top_content, 1):
     bigram_str = ' '.join(bigram)
     bar = '█' * min(freq * 3, 40)
